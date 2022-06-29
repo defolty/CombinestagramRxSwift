@@ -29,8 +29,7 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
-
-//import Foundation
+ 
 import UIKit
 import Photos
 import RxSwift
@@ -45,7 +44,7 @@ class PhotoWriter {
   ///# `save(_:)` вернет `Observable<String>`,
   ///# потому что после сохранения фотографии будет выдан единственный элемент:
   ///# уникальный локальный идентификатор созданного ассета.
-  static func save(_ image : UIImage) -> Observable<String> {
+  static func save(_ image: UIImage) -> Observable<String> {
     
     ///# `Observable.create(_)` создает новую `Observable`,
     ///# и нужно добавить всю нужную логику внутри этого последнего кложура.
@@ -76,5 +75,28 @@ class PhotoWriter {
       })
       return Disposables.create()
     }
+  }
+  
+  ///# Challenge
+  static func saveSingle(_ image: UIImage) -> Single<String> {
+    return Single.create(subscribe: { observer in
+      
+      var savedAssetId: String?
+      let disposable = Disposables.create()
+      
+      PHPhotoLibrary.shared().performChanges({
+        let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
+        savedAssetId = request.placeholderForCreatedAsset?.localIdentifier
+      }, completionHandler: { success, error in
+        DispatchQueue.main.async {
+          if success, let id = savedAssetId {
+            observer(.success(id))
+          } else {
+            observer(.error(error ?? Errors.couldNotSavePhoto))
+          }
+        }
+      })
+      return disposable
+    })
   }
 }
