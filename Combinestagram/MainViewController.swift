@@ -50,6 +50,8 @@ class MainViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let images = BehaviorRelay<[UIImage]>(value: [])
   
+  private var imageCache = [Int]()
+  
   override func viewDidLoad() {
     super.viewDidLoad()
 
@@ -60,6 +62,7 @@ class MainViewController: UIViewController {
   @IBAction func actionClear() {
     // очистить массив
     images.accept([])
+    imageCache = []
   }
 
   @IBAction func actionSave() {
@@ -79,6 +82,7 @@ class MainViewController: UIViewController {
         onError: { [weak self] error in
           self?.showMessage("Error", description: error.localizedDescription)
         })
+    
       .disposed(by: disposeBag)
   }
 
@@ -93,32 +97,89 @@ class MainViewController: UIViewController {
     images.accept(newImages)
      -
      */
+     
+    let photosViewController = storyboard!.instantiateViewController(
+      withIdentifier: "PhotosViewController") as! PhotosViewController
+
+    navigationController!.pushViewController(photosViewController, animated: true)
     
-    let photosViewController = storyboard?.instantiateViewController(withIdentifier: "PhotosViewController") as? PhotosViewController
-    guard let photosVC = photosViewController else { return }
+    /// `observable-practise`
     /// Перед тем как пушить контроллер, вы подписываетесь на события его наблюдаемой `selectedPhotos`.
     /// Вас интересуют два события: `.next`, которое означает, что пользователь нажал на фотографию, а также когда подписка будет удалена.
-    photosVC.selectedPhotos
+    
+    let newPhotos = photosViewController.selectedPhotos
+      .share()
+    
+    newPhotos
+      /// `takeWhile(...)` будет пропускать фотографии до тех пор, пока общее количество изображений в коллаже меньше 6.
+      /// используем `?? nil coalescing operator`, чтобы по умолчанию установить значение 0, если self равно `nil`
+      /// Это делается для того, чтобы удовлетворить компилятор и избежать принудительного разворачивания `self`
+      .takeWhile { [weak self] image in
+        let count = self?.images.value.count ?? 0
+        return count < 6
+      }
+      .filter({ newImage in
+        /// каждая фотография, которую выдает newPhotos, должна будет пройти проверку, прежде чем попасть к подписчику.
+        /// .filter будет проверять, больше ли ширина изображения, чем его высота, и если да, то он пропустит его.
+        /// Фотографии в портретной ориентации будут отброшены.
+        return newImage.size.width > newImage.size.height
+      })
+      .filter { [weak self] newImage in
+        /// получаем данные PNG для нового изображения и сохраняем их количество байт в виде константы `lenght`
+        let lenght = newImage.pngData()?.count ?? 0
+        /// Если `imageCache` содержит число с таким же значением, вы предполагаете,
+        /// что изображение не уникально, и отбрасываете его, возвращая `false`
+        guard self?.imageCache.contains(lenght) == false else {
+          return false
+        }
+        /// если изображение уникально для коллажа, сохраняем его длину байта в `imageCache` и возвращаете `true`
+        self?.imageCache.append(lenght)
+        return true
+      }
       .subscribe(
         onNext: { [weak self] newImage in
           guard let images = self?.images else { return }
           images.accept(images.value + [newImage])
         },
         onDisposed: {
-          print("Completed photo selection")
+          print("completed photo selection")
         }
       )
       .disposed(by: disposeBag)
     
-    navigationController?.pushViewController(photosVC, animated: true)
+    newPhotos
+      .ignoreElements()
+      .subscribe(onCompleted: { [weak self] in
+        self?.updateNavigationIcon()
+      })
+      .disposed(by: disposeBag)
+  }
+  
+  private func updateNavigationIcon() {
+    let icon = imagePreview.image?
+      .scaled(CGSize(width: 22,
+                     height: 22))
+      .withRenderingMode(.alwaysOriginal)
+    
+    navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon,
+                                                       style: .done,
+                                                       target: nil,
+                                                       action: nil)
   }
   
   private func bindImages() {
     images
+      ///# `throttle(_:scheduler:)` фильтрует любые элементы, за которыми следует другой элемент в течение заданного интервала времени
+      ///# Таким образом, если пользователь выберет фотографию и через 0,2 секунды коснется другой, то
+      ///# `throttle` отфильтрует первый элемент и пропустит только второй.
+      ///# Это избавит нас от работы по созданию первого промежуточного коллажа,
+      ///# который сразу же будет устаревшим по сравнению со вторым
+      .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
       .subscribe(onNext: { [weak imagePreview] photos in
         guard let preview = imagePreview else { return }
         preview.image = photos.collage(size: preview.frame.size)
       })
+    
       .disposed(by: disposeBag)
   }
   
@@ -127,6 +188,7 @@ class MainViewController: UIViewController {
       .subscribe(onNext: { [weak self] photos in
         self?.updateUI(photos: photos)
       })
+    
       .disposed(by: disposeBag)
   }
   
@@ -138,19 +200,22 @@ class MainViewController: UIViewController {
   }
   
   func showMessage(_ title: String, description: String? = nil) {
-///# old
-///#    let alert = UIAlertController(title: title,
-///#                                  message: description,
-///#                                  preferredStyle: .alert)
-///#    alert.addAction(UIAlertAction(title: "Close",
-///#                                  style: .default,
-///#                                  handler: { [weak self] _ in self?.dismiss(animated: true,
-///#                                                                           completion: nil)}))
-///#    present(alert, animated: true, completion: nil)
     // with rx ext
     alert(title: title, text: description)
       .subscribe()
+    
       .disposed(by: disposeBag)
+    
+    /* old
+     let alert = UIAlertController(title: title,
+                                   message: description,
+                                   preferredStyle: .alert)
+     alert.addAction(UIAlertAction(title: "Close",
+                                   style: .default,
+                                   handler: { [weak self] _ in self?.dismiss(animated: true,
+                                                                            completion: nil)}))
+     present(alert, animated: true, completion: nil)
+    */
   }
 }
  
