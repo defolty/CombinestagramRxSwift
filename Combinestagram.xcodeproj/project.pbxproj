@@ -77,11 +77,7 @@
 		9CDD7B0A1DE6E38E0058B2D5 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				9CDD7B031DE5AABE0058B2D5 /* UIImage+Collage.swift */,
-				9CE7E5DC1DE5A40900C8BA5A /* AppDelegate.swift */,
 				9CDD7B0B1DE6E3D30058B2D5 /* PhotoWriter.swift */,
-				FBBE7D29286C6DC800FA4D8D /* UIViewController+Rx.swift */,
-				FBBE7D2B287206F400FA4D8D /* PHPhotoLibrary+Rx.swift */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -110,6 +106,8 @@
 		9CE7E5DB1DE5A40900C8BA5A /* Combinestagram */ = {
 			isa = PBXGroup;
 			children = (
+				9CE7E5DC1DE5A40900C8BA5A /* AppDelegate.swift */,
+				FBE42566288C73C50004B63C /* Extensions */,
 				9CDD7B0A1DE6E38E0058B2D5 /* Classes */,
 				9CDD7B091DE6E37C0058B2D5 /* Assets */,
 				FBE42564288C730B0004B63C /* Controllers */,
@@ -141,6 +139,16 @@
 				9CDD7B071DE6D7ED0058B2D5 /* PhotoCell.swift */,
 			);
 			name = Cell;
+			sourceTree = "<group>";
+		};
+		FBE42566288C73C50004B63C /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				9CDD7B031DE5AABE0058B2D5 /* UIImage+Collage.swift */,
+				FBBE7D29286C6DC800FA4D8D /* UIViewController+Rx.swift */,
+				FBBE7D2B287206F400FA4D8D /* PHPhotoLibrary+Rx.swift */,
+			);
+			name = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
