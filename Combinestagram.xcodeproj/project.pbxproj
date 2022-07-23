@@ -112,9 +112,8 @@
 			children = (
 				9CDD7B0A1DE6E38E0058B2D5 /* Classes */,
 				9CDD7B091DE6E37C0058B2D5 /* Assets */,
-				9CE7E5DE1DE5A40A00C8BA5A /* MainViewController.swift */,
-				9CDD7B051DE5BC660058B2D5 /* PhotosViewController.swift */,
-				9CDD7B071DE6D7ED0058B2D5 /* PhotoCell.swift */,
+				FBE42564288C730B0004B63C /* Controllers */,
+				FBE42565288C73220004B63C /* Cell */,
 			);
 			path = Combinestagram;
 			sourceTree = "<group>";
@@ -125,6 +124,23 @@
 				DD13B0CF3BF8339215E65048 /* Pods_Combinestagram.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FBE42564288C730B0004B63C /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				9CE7E5DE1DE5A40A00C8BA5A /* MainViewController.swift */,
+				9CDD7B051DE5BC660058B2D5 /* PhotosViewController.swift */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		FBE42565288C73220004B63C /* Cell */ = {
+			isa = PBXGroup;
+			children = (
+				9CDD7B071DE6D7ED0058B2D5 /* PhotoCell.swift */,
+			);
+			name = Cell;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
